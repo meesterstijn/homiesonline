@@ -2,8 +2,6 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
-import { suggestRecipe } from "@/lib/recipe.functions";
 import { toast } from "sonner";
 
 type Profile = { id: string; display_name: string; emoji: string };
@@ -33,11 +31,8 @@ export function KitchenSection({ family }: { family: Profile[] }) {
 function Recipes({ family }: { family: Profile[] }) {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const askAI = useServerFn(suggestRecipe);
   const [pick, setPick] = useState<Recipe | null>(null);
   const [editing, setEditing] = useState<Partial<Recipe> | null>(null);
-  const [aiHint, setAiHint] = useState("");
-  const [aiBusy, setAiBusy] = useState(false);
 
   const { data: recipes = [] } = useQuery({
     queryKey: ["recipes"],
@@ -79,18 +74,6 @@ function Recipes({ family }: { family: Profile[] }) {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["recipes"] }); setPick(null); },
   });
 
-  const askAIClick = async () => {
-    setAiBusy(true);
-    try {
-      const r = await askAI({ data: { hint: aiHint } });
-      setEditing({ ...r });
-      setAiHint("");
-      toast.success("Klaar! Bewerk en bewaar 🌟");
-    } catch (e) {
-      toast.error((e as Error).message);
-    } finally { setAiBusy(false); }
-  };
-
   const findP = (id: string) => family.find(f => f.id === id);
 
   return (
@@ -106,19 +89,6 @@ function Recipes({ family }: { family: Profile[] }) {
           <button onClick={() => setEditing({ servings: 4 })}
             className="rounded-full border-2 border-foreground/30 bg-card/60 px-6 py-3 font-semibold hover:bg-card">
             + Nieuw recept
-          </button>
-        </div>
-      </div>
-
-      <div className="rounded-3xl border bg-card p-5 shadow-[var(--shadow-soft)]">
-        <h3 className="text-lg font-semibold">✨ Vraag AI om een ideetje</h3>
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-          <input value={aiHint} onChange={(e) => setAiHint(e.target.value)} maxLength={200}
-            placeholder="bv. snel, vegetarisch, met kip..."
-            className="flex-1 rounded-xl border bg-background px-4 py-2.5" />
-          <button onClick={askAIClick} disabled={aiBusy}
-            className="rounded-xl bg-accent px-5 py-2.5 font-semibold text-accent-foreground hover:opacity-90 disabled:opacity-50">
-            {aiBusy ? "Aan het koken..." : "Geef een idee"}
           </button>
         </div>
       </div>
