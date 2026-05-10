@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      bbq_bookings: {
+        Row: {
+          booked_by: string
+          booking_date: string
+          created_at: string
+          end_time: string
+          id: string
+          notes: string | null
+          start_time: string
+          what_cooking: string | null
+        }
+        Insert: {
+          booked_by: string
+          booking_date: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          notes?: string | null
+          start_time?: string
+          what_cooking?: string | null
+        }
+        Update: {
+          booked_by?: string
+          booking_date?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          notes?: string | null
+          start_time?: string
+          what_cooking?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bbq_bookings_booked_by_fkey"
+            columns: ["booked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_events: {
         Row: {
           created_at: string
@@ -110,6 +151,47 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      recipes: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          ingredients: string
+          instructions: string | null
+          servings: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          ingredients: string
+          instructions?: string | null
+          servings?: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          ingredients?: string
+          instructions?: string | null
+          servings?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shopping_items: {
         Row: {
