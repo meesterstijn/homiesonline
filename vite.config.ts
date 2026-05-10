@@ -15,4 +15,15 @@ export default defineConfig({
     tailwindcss(),
     tsconfigPaths(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          router: ["@tanstack/react-router", "@tanstack/react-query"],
+          supabase: ["@supabase/supabase-js"],
+          ui: ["lucide-react", "sonner", "class-variance-authority", "clsx", "tailwind-merge"],
+        },
+      },
+    },
+  },
 });
