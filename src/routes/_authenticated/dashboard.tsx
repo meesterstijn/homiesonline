@@ -100,17 +100,25 @@ function HomeView({ profileName, family, setTab }: { profileName: string; family
   const { data: stats } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
-      const [tasks, shopping, events, notes] = await Promise.all([
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const [tasks, shopping, events, notes, recipes, bbq] = await Promise.all([
         supabase.from("tasks").select("id,done", { count: "exact" }),
         supabase.from("shopping_items").select("id,in_cart", { count: "exact" }),
-        supabase.from("calendar_events").select("id,event_date").gte("event_date", new Date().toISOString()).order("event_date").limit(3),
+        supabase.from("calendar_events").select("id,event_date,title").gte("event_date", new Date().toISOString()).order("event_date").limit(3),
         supabase.from("notes").select("id,title,kind,created_at").order("created_at", { ascending: false }).limit(3),
+        supabase.from("recipes").select("id,title,description,servings"),
+        supabase.from("bbq_bookings").select("id,booking_date,start_time,end_time,what_cooking,booked_by").gte("booking_date", todayStr).order("booking_date").order("start_time").limit(3),
       ]);
+      const recipeList = recipes.data ?? [];
+      const todays = recipeList.length ? recipeList[Math.floor(Math.random() * recipeList.length)] : null;
       return {
         openTasks: tasks.data?.filter(t => !t.done).length ?? 0,
         shopping: shopping.data?.filter(s => !s.in_cart).length ?? 0,
         events: events.data ?? [],
         notes: notes.data ?? [],
+        todaysRecipe: todays,
+        recipeCount: recipeList.length,
+        bbq: bbq.data ?? [],
       };
     },
   });
@@ -128,6 +136,46 @@ function HomeView({ profileName, family, setTab }: { profileName: string; family
         <StatCard emoji="🛒" label="Te kopen" value={stats?.shopping ?? 0} onClick={() => setTab("shopping")} />
         <StatCard emoji="📅" label="Komende afspraken" value={stats?.events.length ?? 0} onClick={() => setTab("calendar")} />
         <StatCard emoji="👨‍👩‍👧" label="Familieleden" value={family.length} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <button onClick={() => setTab("kitchen")}
+          className="group rounded-3xl border-2 border-primary/20 p-6 text-left shadow-[var(--shadow-soft)] transition hover:-translate-y-1 hover:border-primary/40"
+          style={{ background: "linear-gradient(135deg, oklch(0.92 0.06 80) 0%, oklch(0.84 0.13 85) 100%)" }}>
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl">🍽️ Wat eten we vandaag?</h2>
+            <span className="text-sm opacity-60 group-hover:opacity-100">→</span>
+          </div>
+          {stats?.todaysRecipe ? (
+            <>
+              <div className="mt-3 text-2xl font-display font-semibold">{stats.todaysRecipe.title}</div>
+              {stats.todaysRecipe.description && <p className="mt-1 text-sm opacity-80">{stats.todaysRecipe.description}</p>}
+              <p className="mt-3 text-xs opacity-70">Voorstel uit jullie {stats.recipeCount} recepten</p>
+            </>
+          ) : (
+            <p className="mt-3 text-sm opacity-80">Voeg recepten toe of laat AI iets bedenken!</p>
+          )}
+        </button>
+
+        <button onClick={() => setTab("kitchen")}
+          className="group rounded-3xl p-6 text-left text-white shadow-[var(--shadow-soft)] transition hover:-translate-y-1"
+          style={{ background: "linear-gradient(135deg, oklch(0.55 0.12 145) 0%, oklch(0.32 0.08 145) 100%)" }}>
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl">🥚 Big Green Egg</h2>
+            <span className="text-sm opacity-60 group-hover:opacity-100">→</span>
+          </div>
+          {stats?.bbq.length ? (
+            <ul className="mt-3 space-y-1 text-sm">
+              {stats.bbq.slice(0, 3).map((b: any) => (
+                <li key={b.id} className="opacity-90">
+                  {new Date(b.booking_date).toLocaleDateString("nl-NL", { weekday: "short", day: "numeric", month: "short" })} · {b.start_time.slice(0,5)}–{b.end_time.slice(0,5)} {b.what_cooking && `· ${b.what_cooking}`}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm opacity-90">Vrij! Reserveer Pa's BBQ voor je volgende sessie.</p>
+          )}
+        </button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
