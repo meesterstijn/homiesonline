@@ -8,6 +8,7 @@ import { TasksSection } from "@/components/dashboard/TasksSection";
 import { ShoppingSection } from "@/components/dashboard/ShoppingSection";
 import { CalendarSection } from "@/components/dashboard/CalendarSection";
 import { NotesSection } from "@/components/dashboard/NotesSection";
+import { KitchenSection } from "@/components/dashboard/KitchenSection";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -18,6 +19,7 @@ const TABS = [
   { id: "tasks", label: "Taken", emoji: "✅" },
   { id: "shopping", label: "Boodschappen", emoji: "🛒" },
   { id: "calendar", label: "Agenda", emoji: "📅" },
+  { id: "kitchen", label: "Keuken & BBQ", emoji: "🍽️" },
   { id: "notes", label: "Notities", emoji: "📌" },
 ] as const;
 
@@ -87,6 +89,7 @@ function Dashboard() {
         {tab === "tasks" && <TasksSection family={family} />}
         {tab === "shopping" && <ShoppingSection family={family} />}
         {tab === "calendar" && <CalendarSection />}
+        {tab === "kitchen" && <KitchenSection family={family} />}
         {tab === "notes" && <NotesSection family={family} />}
       </main>
     </div>
